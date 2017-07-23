@@ -2,6 +2,12 @@ package animatedwallpaper;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.locks.LockSupport;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -42,9 +48,12 @@ public class AnimatedWallpaper extends Application {
                 new Image(getClass().getResource("/images/desktop_32x32.png").toString())
         );
 
-        File file = new File(getClass().getResource("/media/desktop.mp4").toString());
+        InputStream fileStream = getClass().getResourceAsStream("/media/desktop.mp4");
+        Path tmpFile = Files.createTempFile("", ".mp4");
+        Files.copy(fileStream, tmpFile, StandardCopyOption.REPLACE_EXISTING);
+        File file = tmpFile.toFile();
         System.out.println(file);
-        String url = file.toString();
+        String url = file.toURI().toString();
 
         System.out.println(url);
         Media media = new Media(url);
