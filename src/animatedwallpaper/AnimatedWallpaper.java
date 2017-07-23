@@ -62,7 +62,7 @@ public class AnimatedWallpaper extends Application {
         mediaView.setFitWidth(screenBounds.getWidth());
         mediaView.setFitHeight(screenBounds.getHeight());
 
-        MenuItem playPauseItem = new MenuItem("Pause / Pause");
+        MenuItem playPauseItem = new MenuItem("Pause / Play");
         playPauseItem.setOnAction(e -> {
             if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
                 mediaPlayer.pause();
