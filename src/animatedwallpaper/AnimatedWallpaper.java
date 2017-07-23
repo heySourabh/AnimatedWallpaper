@@ -3,27 +3,28 @@ package animatedwallpaper;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.locks.LockSupport;
 import javafx.application.Application;
-import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
-import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javax.swing.ImageIcon;
+import javax.swing.JWindow;
 import util.UtilFX;
 
 /**
@@ -41,12 +42,11 @@ public class AnimatedWallpaper extends Application {
 
         Rectangle2D screenBounds = Screen.getPrimary().getBounds();
 
-        primaryStage.initStyle(StageStyle.TRANSPARENT);
-        primaryStage.setTitle("Sourabh's Desktop");
-
-        primaryStage.getIcons().addAll(
-                new Image(getClass().getResource("/images/desktop_32x32.png").toString())
-        );
+        JWindow window = new JWindow();
+        JFXPanel fXPanel = new JFXPanel();
+        window.add(fXPanel);
+        window.setSize((int) screenBounds.getWidth(), (int) screenBounds.getHeight());
+        window.setIconImage(new ImageIcon(getClass().getResource("/images/desktop_32x32.png")).getImage());
 
         InputStream fileStream = getClass().getResourceAsStream("/media/desktop.mp4");
         Path tmpFile = Files.createTempFile("", ".mp4");
@@ -61,6 +61,21 @@ public class AnimatedWallpaper extends Application {
         MediaView mediaView = new MediaView(mediaPlayer);
         mediaView.setFitWidth(screenBounds.getWidth());
         mediaView.setFitHeight(screenBounds.getHeight());
+
+        MenuItem playPauseItem = new MenuItem("Pause / Pause");
+        playPauseItem.setOnAction(e -> {
+            if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                mediaPlayer.pause();
+            } else {
+                mediaPlayer.play();
+            }
+        });
+        ContextMenu menu = new ContextMenu(playPauseItem);
+        mediaView.setOnMouseClicked(me -> {
+            if (me.getButton() == MouseButton.SECONDARY) {
+                menu.show(mediaView, me.getScreenX(), me.getScreenY());
+            }
+        });
 
         Image desktopIconImage = new Image(
                 getClass().getResource("/images/folders-desktop.png").toString(),
@@ -81,24 +96,16 @@ public class AnimatedWallpaper extends Application {
         mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         mediaPlayer.play();
 
-        Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight(), Color.TRANSPARENT);
-        primaryStage.setScene(scene);
+        Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
+        fXPanel.setScene(scene);
 
-        primaryStage.show();
-        primaryStage.toBack();
-        primaryStage.setOnCloseRequest(we -> we.consume());
+        window.setVisible(true);
+        window.toBack();
 
-//        primaryStage.focusedProperty()
-//                .addListener((observable, wasFocused, isNowFocused) -> {
-//                    if (!wasFocused && isNowFocused) {
-//                        System.out.println("Is focused moving to back.");
-//                        primaryStage.toBack();
-//                    }
-//                });
         new Thread(() -> {
             while (true) {
-                LockSupport.parkNanos(1_000_000_000);
-                Platform.runLater(() -> primaryStage.toBack());
+                LockSupport.parkNanos(500_000_000);
+                window.toBack();
             }
         }).start();
     }
